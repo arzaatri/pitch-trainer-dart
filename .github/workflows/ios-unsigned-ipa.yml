@@ -1,0 +1,31 @@
+name: Build unsigned iOS IPA
+
+on:
+  workflow_dispatch: # manual trigger via the Actions tab's "Run workflow" button
+
+jobs:
+  build:
+    runs-on: macos-14
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.5'
+          channel: 'stable'
+
+      - run: flutter pub get
+
+      - run: flutter build ios --release --no-codesign
+
+      - name: Package unsigned IPA
+        run: |
+          mkdir -p Payload
+          cp -r build/ios/iphoneos/Runner.app Payload/
+          zip -r dart_pitch_trainer.ipa Payload
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dart_pitch_trainer-ipa
+          path: dart_pitch_trainer.ipa
